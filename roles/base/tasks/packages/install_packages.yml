@@ -1,0 +1,38 @@
+- name: packages
+  become: true
+  block:
+    - name: packages | install common packages
+      package:
+        name:
+          - atool
+          - fzf
+          - gzip
+          - htop
+          - ncdu
+          - neofetch
+          - ntfs-3g
+          - "{{ openssh_package }}"
+          - p7zip
+          - ripgrep
+          - "{{ fd_package }}"
+          - s-tui
+          - "{{ unrar_package }}"
+          - unzip
+          - yt-dlp
+          - zip
+          - zsh
+        state: latest
+
+    - name: packages | install Pacman Contrib package (Archlinux)
+      pacman:
+        name:
+          - pacman-contrib
+        state: latest
+      when: ansible_distribution in ["Archlinux", "Artix Linux"]
+
+    - name: packages | install polkit package (Archlinux)
+      pacman:
+        name:
+          - polkit
+        state: latest
+      when: ansible_distribution in ["Archlinux", "Artix Linux"]

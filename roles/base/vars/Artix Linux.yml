@@ -1,0 +1,8 @@
+# Common vars
+sudo_group: wheel
+
+# Package names
+acpi_call_package: acpi_call
+fd_package: fd
+openssh_package: openssh
+unrar_package: unrar

@@ -1,0 +1,7 @@
+# Common vars
+sudo_group: sudo
+
+# Package names
+fd_package: fd-find
+openssh_package: openssh-client
+unrar_package: unrar

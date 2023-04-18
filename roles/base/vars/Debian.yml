@@ -1,0 +1,8 @@
+# Common vars
+sudo_group: sudo
+
+# Package names
+acpi_call_package: acpi-call
+fd_package: fd-find
+openssh_package: openssh-client
+unrar_package: unrar-free
