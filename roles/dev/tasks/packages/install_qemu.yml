@@ -1,0 +1,56 @@
+- name: packages | qemu
+  become: true
+  block:
+    - name: packages | qemu | install required packages (Archlinux)
+      pacman:
+        name:
+          - dmidecode
+          - qemu
+            #- dhclient
+          - virt-viewer
+          - libvirt
+          - dnsmasq
+          # - ebtables
+          - virt-install
+          - virt-manager
+          # - bridge-utils
+        state: present
+      when: ansible_os_family in ["Archlinux", "Artix Linux"]
+
+    - name: packages | qemu | install required packages (Debian)
+      apt:
+        name:
+          - qemu-system
+          - qemu-utils
+          - qemu-kvm
+            #- dhclient
+          - virt-viewer
+          - libvirt-clients
+          - libvirt-daemon-system
+          - dnsmasq
+          # - ebtables
+          - virtinst
+          - virt-manager
+          # - bridge-utils
+        state: present
+      when: ansible_distribution in ["Debian", "Pop!_OS"]
+
+    - name: packages | qemu | ensure qemu related services are not enabled (Debian)
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      with_items:
+        - libvirtd
+        - libvirt-guests
+        - systemd-machined
+        - dnsmasq
+      when: ansible_distribution in ["Debian", "Pop!_OS"]
+
+    - name: "users | {{ user }} | ensure {{ user }} is in libvirt group (Linux)"
+      become: true
+      user:
+        name: "{{ user }}"
+        groups: libvirt
+        append: yes
+      when: ansible_system == "Linux"

@@ -1,0 +1,10 @@
+# Load distro specific variables
+- include_vars: "{{ ansible_os_family }}.yml"
+  when: ansible_system == "Linux"
+
+- block:
+  - import_tasks: packages/install_packages.yml
+  - import_tasks: packages/install_golang.yml
+  - import_tasks: packages/install_lsp_dependencies.yml
+  - import_tasks: packages/install_lualanguageserver.yml
+  - import_tasks: packages/install_qemu.yml

@@ -1,0 +1,21 @@
+- name: packages | AUR helper
+  become_user: "{{ user }}"
+  block:
+    - name: packages | AUR helper | check if already cloned
+      stat:
+        path: /tmp/yay
+      register: yay_is_present
+
+    - name: packages | AUR helper | clone Yay repo (Archlinux)
+      git:
+        repo: https://aur.archlinux.org/yay-bin.git
+        dest: /tmp/yay
+      when: not yay_is_present.stat.exists
+
+    - name: packages | AUR helper | install Yay (Archlinux)
+      command: makepkg --noconfirm -si
+      args:
+        chdir: /tmp/yay
+        creates: /usr/bin/yay
+      when: not yay_is_present.stat.exists
+  when: ansible_os_family in ["Archlinux", "Artix Linux"]

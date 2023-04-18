@@ -1,0 +1,42 @@
+- name: packages | LSP | install HTML
+  npm:
+    global: yes
+    name: vscode-langservers-extracted
+
+- name: packages | LSP | install gopls (Archlinux, MacOS)
+  become_user: "{{ user }}"
+  command: go install golang.org/x/tools/gopls@latest
+  when: ansible_os_family in ["Archlinux", "Artix Linux", "Darwin"]
+
+- name: packages | LSP | install gopls (Debian)
+  become_user: "{{ user }}"
+  command: /usr/local/go/bin/go install golang.org/x/tools/gopls@latest
+  when: ansible_distribution in ["Debian", "Pop!_OS"]
+
+- name: packages | LSP | install GraphQl
+  npm:
+    global: yes
+    name: graphql-language-service-cli
+
+- name: packages | LSP | install Typescript
+  npm:
+    global: yes
+    name: typescript
+
+- name: packages | LSP | install Typescript Language Server
+  npm:
+    global: yes
+    name: typescript-language-server
+
+- name: packages | LSP | install Vue Language Server
+  npm:
+    global: yes
+    name: "@volar/vue-language-server"
+
+# Hoping to be a temp fix
+- name: packages | LSP | setup tsserver for volar
+  lineinfile:
+    dest: "/home/{{ user }}/.config/nvim/after/plugin/lspconfig.lua"
+    regexp: "^      tsdk"
+    line: "      tsdk = '/home/{{ user }}/.local/lib/node_modules/typescript/lib'"
+

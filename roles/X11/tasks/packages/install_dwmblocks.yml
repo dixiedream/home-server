@@ -1,0 +1,30 @@
+- name: packages | dwmblocks
+  become: true
+  block:
+    - name: packages | dwmblocks | clone repo
+      git:
+        repo: https://github.com/dixiedream/dwmblocks
+        dest: /tmp/dwmblocks
+        force: yes
+
+    - name: packages | dwmblocks | install required dependencies (Debian)
+      package:
+        name:
+          - build-essential
+          - make
+          - gcc
+          - libharfbuzz-dev
+          - libx11-dev
+          - libxft-dev
+          - libxinerama-dev
+          - xinit
+          - xserver-xorg
+          - x11-xserver-utils
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: packages | dwmblocks | install
+      make:
+        target: install
+        chdir: /tmp/dwmblocks
+  when: ansible_distribution in ["Archlinux", "Artix Linux", "Debian"]
