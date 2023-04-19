@@ -15,14 +15,14 @@
         state: present
         shell: /usr/bin/zsh
 
-    - name: users | "{{ user }}" | add sudoers file
-      template:
-        src: users/sudoers.j2
-        dest: "/etc/sudoers.d/{{ user }}"
-        owner: root
-        group: root
-        mode: 0400
-
+    # - name: users | "{{ user }}" | add sudoers file
+    #   template:
+    #     src: users/sudoers.j2
+    #     dest: "/etc/sudoers.d/{{ user }}"
+    #     owner: root
+    #     group: root
+    #     mode: 0400
+    #
     - name: users | "{{ user }}" | create .ssh directory
       file:
         path: "{{ item.dir }}"
@@ -32,18 +32,24 @@
         mode: 0700
       with_items:
         - { dir: "/home/{{ user }}/.ssh" }
+    #
+    # - name: users | "{{ user }}" | check if key already exists
+    #   stat:
+    #     path: "/home/{{ user }}/.ssh/id_rsa"
+    #   register: key_stat
+    #
+    # - name: users | "{{ user }}" | generate ssh key
+    #   openssh_keypair:
+    #     path: "/home/{{ user }}/.ssh/id_rsa"
+    #     owner: "{{ user }}"
+    #     group: "{{ user }}"
+    #   when: not key_stat.stat.exists
 
-    - name: users | "{{ user }}" | check if key already exists
-      stat:
-        path: "/home/{{ user }}/.ssh/id_rsa"
-      register: key_stat
-
-    - name: users | "{{ user }}" | generate ssh key
-      openssh_keypair:
-        path: "/home/{{ user }}/.ssh/id_rsa"
-        owner: "{{ user }}"
-        group: "{{ user }}"
-      when: not key_stat.stat.exists
+    - name: users | "{{ user }}" | copy key to host
+      authorized_key:
+        user: "{{ user }}"
+        state: present
+        key: "{{ lookup('file', '/home/{{ user }}/.ssh/id_rsa.pub') }}"
 
     # - name: users | "{{ user }}" | remove bash related files
     #   file:
@@ -55,31 +61,31 @@
     #     - "/home/{{ user }}/.bash_profile"
     #     - "/home/{{ user }}/.bashrc"
     #
-    - name: users | "{{ user }}" | Disable fish greeting
-      lineinfile:
-        path: "/home/{{ user }}/.config/fish/fish_variables"
-        state: present
-        regexp: 'fish_greeting:.+'
-        line: 'SETUVAR fish_greeting:'
-        create: true
-        owner: "{{ user }}"
-        group: "{{ user }}"
-        mode: 0644
-      when: '"fish" in shell'
+    # - name: users | "{{ user }}" | Disable fish greeting
+    #   lineinfile:
+    #     path: "/home/{{ user }}/.config/fish/fish_variables"
+    #     state: present
+    #     regexp: 'fish_greeting:.+'
+    #     line: 'SETUVAR fish_greeting:'
+    #     create: true
+    #     owner: "{{ user }}"
+    #     group: "{{ user }}"
+    #     mode: 0644
+    #   when: '"fish" in shell'
 
-    - name: users | "{{ user }}" | Suppress login messages
-      file:
-        name: "/home/{{ user }}/.hushlogin"
-        mode: 0644
-        state: touch
-        owner: "{{ user }}"
-        group: "{{ user }}"
-        modification_time: preserve
-        access_time: preserve
+    # - name: users | "{{ user }}" | Suppress login messages
+    #   file:
+    #     name: "/home/{{ user }}/.hushlogin"
+    #     mode: 0644
+    #     state: touch
+    #     owner: "{{ user }}"
+    #     group: "{{ user }}"
+    #     modification_time: preserve
+    #     access_time: preserve
 
-    - name: users | "{{ user }}" | Disable cron e-mail notifications
-      cron:
-        name: MAILTO
-        user: "{{ user }}"
-        env: yes
-        job: ""
+    # - name: users | "{{ user }}" | Disable cron e-mail notifications
+    #   cron:
+    #     name: MAILTO
+    #     user: "{{ user }}"
+    #     env: yes
+    #     job: ""

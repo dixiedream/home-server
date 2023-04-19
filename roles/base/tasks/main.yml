@@ -15,12 +15,13 @@
     - import_tasks: packages/install_aur_helper.yml
     - import_tasks: packages/install_packages.yml
     - import_tasks: packages/install_lf.yml
-    # - import_tasks: packages/install_drivers.yml
     - import_tasks: packages/install_autocpufreq.yml
     - import_tasks: packages/install_thermald.yml
     - import_tasks: system_setup/apt.yml
+    - import_tasks: system_setup/fail2ban.yml
     - import_tasks: system_setup/locale.yml
     - import_tasks: system_setup/pacman.yml
+    - import_tasks: system_setup/ssh.yml
     - import_tasks: system_setup/remove_beep.yml
     - import_tasks: system_setup/debian_systemctl_shortcuts.yml
   when: ansible_system == "Linux"
