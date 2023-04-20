@@ -13,7 +13,7 @@
         groups: "{{ sudo_group }}"
         append: true
         state: present
-        shell: /usr/bin/zsh
+        shell: /usr/bin/bash
 
     # - name: users | "{{ user }}" | add sudoers file
     #   template:
