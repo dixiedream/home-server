@@ -38,8 +38,8 @@
 - name: system setup | firewall | Configure the service.
   service:
     name: firewall
-    state: "{{ firewall_state }}"
-    enabled: "{{ firewall_enabled_at_boot }}"
+    state: started
+    enabled: true
 
 - name: system setup | firewall | Check if firewalld package is installed (on RHEL).
   command: yum list installed firewalld
