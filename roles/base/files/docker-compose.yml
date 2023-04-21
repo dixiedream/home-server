@@ -1,0 +1,214 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    # user: uid:gid
+    # network_mode: 'host'
+    volumes:
+      - jellyfin_config:/config
+      - jellyfin_cache:/cache
+      # - /path/to/media:/media
+      # - /path/to/media2:/media2:ro
+    restart: 'unless-stopped'
+    # Optional - alternative address used for autodiscovery
+    # environment:
+    #   - JELLYFIN_PublishedServerUrl=http://example.com
+    # Optional - may be necessary for docker healthcheck to pass if running in host network mode
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+
+  sonarr:
+    image: cr.hotio.dev/hotio/sonarr
+    container_name: sonarr
+    volumes:
+        - sonarr_config:/config
+        - media_library:/data
+    environment:
+        - PUID=111
+        - PGID=321
+        - UMASK=002
+
+  radarr:
+    container_name: radarr
+    image: cr.hotio.dev/hotio/radarr
+    # ports:
+    #   - "7878:7878"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Etc/UTC
+    volumes:
+      - radarr_config:/config
+      - media_library:/data
+
+  lidarr:
+    container_name: lidarr
+    image: cr.hotio.dev/hotio/lidarr
+    # ports:
+    #   - "8686:8686"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Etc/UTC
+    volumes:
+      - lidarr_config:/config
+      - media_library:/data
+
+  jackett:
+    container_name: jackett
+    image: cr.hotio.dev/hotio/jackett
+    # ports:
+    #   - "9117:9117"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Etc/UTC
+    volumes:
+      - jackett_config:/config
+
+  nextcloud:
+    image: nextcloud/all-in-one:latest
+    restart: always
+    container_name: nextcloud-aio-mastercontainer
+    volumes:
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+      - /var/run/docker.sock:/var/run/docker.sock:ro # May be changed on macOS, Windows or docker rootless. See the applicable documentation. If adjusting, don't forget to also set 'DOCKER_SOCKET_PATH'!
+    ports:
+      - 80:80 # Can be removed when running behind a web server or reverse proxy (like Apache, Nginx and else). See https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md
+      - 8080:8080
+      - 8443:8443 # Can be removed when running behind a web server or reverse proxy (like Apache, Nginx and else). See https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md
+    environment: # Is needed when using any of the options below
+      # - APACHE_PORT=11000 # Is needed when running behind a web server or reverse proxy (like Apache, Nginx and else). See https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md
+      # - APACHE_IP_BINDING=127.0.0.1 # Should be set when running behind a web server or reverse proxy (like Apache, Nginx and else) that is running on the same host. See https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md
+      # - COLLABORA_SECCOMP_DISABLED=false # Setting this to true allows to disable Collabora's Seccomp feature. See https://github.com/nextcloud/all-in-one#how-to-disable-collaboras-seccomp-feature
+      - DOCKER_SOCKET_PATH=/var/run/docker.sock # Needs to be specified if the docker socket on the host is not located in the default '/var/run/docker.sock'. Otherwise mastercontainer updates will fail. For macos it needs to be '/var/run/docker.sock'
+      # - DISABLE_BACKUP_SECTION=false # Setting this to true allows to hide the backup section in the AIO interface.
+      # - NEXTCLOUD_DATADIR=/mnt/ncdata # Allows to set the host directory for Nextcloud's datadir. See https://github.com/nextcloud/all-in-one#how-to-change-the-default-location-of-nextclouds-datadir
+      # - NEXTCLOUD_MOUNT=/mnt/ # Allows the Nextcloud container to access the chosen directory on the host. See https://github.com/nextcloud/all-in-one#how-to-allow-the-nextcloud-container-to-access-directories-on-the-host
+      # - NEXTCLOUD_UPLOAD_LIMIT=10G # Can be adjusted if you need more. See https://github.com/nextcloud/all-in-one#how-to-adjust-the-upload-limit-for-nextcloud
+      # - NEXTCLOUD_MAX_TIME=3600 # Can be adjusted if you need more. See https://github.com/nextcloud/all-in-one#how-to-adjust-the-max-execution-time-for-nextcloud
+      # - NEXTCLOUD_MEMORY_LIMIT=512M # Can be adjusted if you need more. See https://github.com/nextcloud/all-in-one#how-to-adjust-the-php-memory-limit-for-nextcloud
+      # - NEXTCLOUD_TRUSTED_CACERTS_DIR=/path/to/my/cacerts # CA certificates in this directory will be trusted by the OS of the nexcloud container (Useful e.g. for LDAPS) See See https://github.com/nextcloud/all-in-one#how-to-trust-user-defiend-certification-authorities-ca
+      # - NEXTCLOUD_STARTUP_APPS=deck twofactor_totp tasks calendar contacts # Allows to modify the Nextcloud apps that are installed on starting AIO the first time. See https://github.com/nextcloud/all-in-one#how-to-change-the-nextcloud-apps-that-are-installed-on-the-first-startup
+      # - NEXTCLOUD_ADDITIONAL_APKS=imagemagick # This allows to add additional packages to the Nextcloud container permanently. Default is imagemagick but can be overwritten by modifying this value. See https://github.com/nextcloud/all-in-one#how-to-add-os-packages-permanently-to-the-nextcloud-container
+      # - NEXTCLOUD_ADDITIONAL_PHP_EXTENSIONS=imagick # This allows to add additional php extensions to the Nextcloud container permanently. Default is imagick but can be overwritten by modifying this value. See https://github.com/nextcloud/all-in-one#how-to-add-php-extensions-permanently-to-the-nextcloud-container
+      # - NEXTCLOUD_ENABLE_DRI_DEVICE=true # This allows to enable the /dev/dri device in the Nextcloud container which is needed for hardware-transcoding. See https://github.com/nextcloud/all-in-one#how-to-enable-hardware-transcoding-for-nextcloud
+      # - TALK_PORT=3478 # This allows to adjust the port that the talk container is using.
+
+  # # Optional: Caddy reverse proxy. See https://github.com/nextcloud/all-in-one/blob/main/reverse-proxy.md
+  # # You can find further examples here: https://github.com/nextcloud/all-in-one/discussions/588
+  # caddy:
+  #   image: caddy:alpine
+  #   restart: always
+  #   container_name: caddy
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile
+  #     - ./certs:/certs
+  #     - ./config:/config
+  #     - ./data:/data
+  #     - ./sites:/srv
+  #   network_mode: "host"
+  #
+  #
+  photoprism:
+    image: photoprism/photoprism:latest
+    # depends_on:
+    #   - mariadb
+    # restart: unless-stopped
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    ports:
+      - "2342:2342" # HTTP port (host:container)
+    environment:
+      PHOTOPRISM_ADMIN_USER: "admin"                 # superadmin username
+      PHOTOPRISM_ADMIN_PASSWORD: "insecure"          # initial superadmin password (minimum 8 characters)
+      PHOTOPRISM_AUTH_MODE: "password"               # authentication mode (public, password)
+      PHOTOPRISM_SITE_URL: "http://photoprism.me:2342/"  # server URL in the format "http(s)://domain.name(:port)/(path)"
+      PHOTOPRISM_ORIGINALS_LIMIT: 5000               # file size limit for originals in MB (increase for high-res video)
+      PHOTOPRISM_HTTP_COMPRESSION: "gzip"            # improves transfer speed and bandwidth utilization (none or gzip)
+      PHOTOPRISM_LOG_LEVEL: "info"                   # log level: trace, debug, info, warning, error, fatal, or panic
+      PHOTOPRISM_READONLY: "false"                   # do not modify originals directory (reduced functionality)
+      PHOTOPRISM_EXPERIMENTAL: "false"               # enables experimental features
+      PHOTOPRISM_DISABLE_CHOWN: "false"              # disables updating storage permissions via chmod and chown on startup
+      PHOTOPRISM_DISABLE_WEBDAV: "false"             # disables built-in WebDAV server
+      PHOTOPRISM_DISABLE_SETTINGS: "false"           # disables settings UI and API
+      PHOTOPRISM_DISABLE_TENSORFLOW: "false"         # disables all features depending on TensorFlow
+      PHOTOPRISM_DISABLE_FACES: "false"              # disables face detection and recognition (requires TensorFlow)
+      PHOTOPRISM_DISABLE_CLASSIFICATION: "false"     # disables image classification (requires TensorFlow)
+      PHOTOPRISM_DISABLE_RAW: "false"                # disables indexing and conversion of RAW files
+      PHOTOPRISM_RAW_PRESETS: "false"                # enables applying user presets when converting RAW files (reduces performance)
+      PHOTOPRISM_JPEG_QUALITY: 85                    # a higher value increases the quality and file size of JPEG images and thumbnails (25-100)
+      PHOTOPRISM_DETECT_NSFW: "false"                # automatically flags photos as private that MAY be offensive (requires TensorFlow)
+      PHOTOPRISM_UPLOAD_NSFW: "true"                 # allows uploads that MAY be offensive (no effect without TensorFlow)
+      PHOTOPRISM_DATABASE_DRIVER: "mysql"            # use MariaDB 10.5+ or MySQL 8+ instead of SQLite for improved performance
+      PHOTOPRISM_DATABASE_SERVER: "mariadb:3306"     # MariaDB or MySQL database server (hostname:port)
+      PHOTOPRISM_DATABASE_NAME: "photoprism"         # MariaDB or MySQL database schema name
+      PHOTOPRISM_DATABASE_USER: "photoprism"         # MariaDB or MySQL database user name
+      PHOTOPRISM_DATABASE_PASSWORD: "insecure"       # MariaDB or MySQL database user password
+      PHOTOPRISM_SITE_CAPTION: "AI-Powered Photos App"
+      PHOTOPRISM_SITE_DESCRIPTION: ""                # meta site description
+      PHOTOPRISM_SITE_AUTHOR: ""                     # meta site author
+      ## Run/install on first startup (options: update https gpu tensorflow davfs clitools clean):
+      # PHOTOPRISM_INIT: "https gpu tensorflow"
+      ## Hardware Video Transcoding:
+      # PHOTOPRISM_FFMPEG_ENCODER: "software"        # FFmpeg encoder ("software", "intel", "nvidia", "apple", "raspberry")
+      # PHOTOPRISM_FFMPEG_BITRATE: "32"              # FFmpeg encoding bitrate limit in Mbit/s (default: 50)
+      ## Run as a non-root user after initialization (supported: 0, 33, 50-99, 500-600, and 900-1200):
+      # PHOTOPRISM_UID: 1000
+      # PHOTOPRISM_GID: 1000
+      # PHOTOPRISM_UMASK: 0000
+    ## Start as non-root user before initialization (supported: 0, 33, 50-99, 500-600, and 900-1200):
+    # user: "1000:1000"
+    ## Share hardware devices with FFmpeg and TensorFlow (optional):
+    # devices:
+    #  - "/dev/dri:/dev/dri"                         # Intel QSV
+    #  - "/dev/nvidia0:/dev/nvidia0"                 # Nvidia CUDA
+    #  - "/dev/nvidiactl:/dev/nvidiactl"
+    #  - "/dev/nvidia-modeset:/dev/nvidia-modeset"
+    #  - "/dev/nvidia-nvswitchctl:/dev/nvidia-nvswitchctl"
+    #  - "/dev/nvidia-uvm:/dev/nvidia-uvm"
+    #  - "/dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools"
+    #  - "/dev/video11:/dev/video11"                 # Video4Linux Video Encode Device (h264_v4l2m2m)
+    working_dir: "/photoprism" # do not change or remove
+    ## Storage Folders: "~" is a shortcut for your home directory, "." for the current directory
+    volumes:
+      # "/host/folder:/photoprism/folder"                # Example
+      - "~/Pictures:/photoprism/originals"               # Original media files (DO NOT REMOVE)
+      # - "/example/family:/photoprism/originals/family" # *Additional* media folders can be mounted like this
+      # - "~/Import:/photoprism/import"                  # *Optional* base folder from which files can be imported to originals
+      - "./storage:/photoprism/storage"                  # *Writable* storage folder for cache, database, and sidecar files (DO NOT REMOVE)
+
+  mariadb:
+    restart: unless-stopped
+    image: mariadb:10.10
+    security_opt: # see https://github.com/MariaDB/mariadb-docker/issues/434#issuecomment-1136151239
+      - seccomp:unconfined
+      - apparmor:unconfined
+    command: mysqld --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      MARIADB_AUTO_UPGRADE: "1"
+      MARIADB_INITDB_SKIP_TZINFO: "1"
+      MARIADB_DATABASE: "photoprism"
+      MARIADB_USER: "photoprism"
+      MARIADB_PASSWORD: "insecure"
+      MARIADB_ROOT_PASSWORD: "insecure"
+
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: always
+    environment:
+      WEBSOCKET_ENABLED: "true"
+    volumes:
+      - vaultwarden:/data
+
+volumes:
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer

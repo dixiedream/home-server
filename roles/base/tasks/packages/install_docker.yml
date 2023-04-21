@@ -1,0 +1,43 @@
+- name: packages | docker | install required packages
+  become: true
+  package:
+    name:
+      - docker
+      - docker-compose
+    state: latest
+
+- name: packages | docker | ensure socket service is enabled
+  become: true
+  service:
+    name: 'docker.socket'
+    state: started
+    enabled: true
+
+- name: packages | docker | ensure service is enabled
+  become: true
+  service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: packages | docker | ensure containerd service is enabled
+  become: true
+  service:
+    name: containerd
+    state: started
+    enabled: true
+#
+# - name: packages | docker | ensure systemd networkd wait online service is enabled
+#   become: true
+#   service:
+#     name: systemd-networkd-wait-online
+#     state: stopped
+#     enabled: no
+#   when: ansible_distribution in ["Artix Linux", "Archlinux", "Debian"]
+
+- name: "users | {{ user }} | ensure {{ user }} is in docker group "
+  become: true
+  user:
+    name: "{{ user }}"
+    groups: docker
+    append: yes

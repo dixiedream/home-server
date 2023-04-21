@@ -1,0 +1,6 @@
+- name: webserver | copy compose file
+  copy:
+    src: docker-compose.yml
+    dest: "/home/{{ user }}/"
+    owner: "{{ user }}"
+    group: "{{ user }}"
