@@ -9,7 +9,7 @@
 
     - name: system setup | fail2ban | Copy custom configuration file into place.
       template:
-        src: "jail.local.j2"
+        src: "system_setup/jail.local.j2"
         dest: /etc/fail2ban/jail.local
         owner: root
         group: root

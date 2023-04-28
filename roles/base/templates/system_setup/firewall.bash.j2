@@ -23,20 +23,9 @@ iptables -P OUTPUT ACCEPT
 # Accept traffic from loopback interface (localhost).
 iptables -A INPUT -i lo -j ACCEPT
 
-# Forwarded ports.
-{# Add a rule for each forwarded port #}
-#iptables -t nat -I PREROUTING -p tcp --dport {{ forwarded_port.src }} -j REDIRECT --to-port {{ forwarded_port.dest }}
-#iptables -t nat -I OUTPUT -p tcp -o lo --dport {{ forwarded_port.src }} -j REDIRECT --to-port {{ forwarded_port.dest }}
-
-#iptables -t nat -I PREROUTING -p udp --dport {{ forwarded_port.src }} -j REDIRECT --to-port {{ forwarded_port.dest }}
-#iptables -t nat -I OUTPUT -p udp -o lo --dport {{ forwarded_port.src }} -j REDIRECT --to-port {{ forwarded_port.dest }}
-
 # Open TCP ports.
 iptables -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT
 iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
-
-# Open UDP ports
-#iptables -A INPUT -p udp -m udp --dport {{ port }} -j ACCEPT
 
 # Accept icmp ping requests.
 iptables -A INPUT -p icmp -j ACCEPT

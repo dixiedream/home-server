@@ -5,6 +5,43 @@
       - docker
       - docker-compose
     state: latest
+  when: ansible_distribution in ["Archlinux"]
+
+- name: packages | docker | install required dependencies (Debian)
+  package:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+  when: ansible_os_family == "Debian"
+
+- name: packages | docker | setup keyring (Debian)
+  get_url:
+    url: https://docker-browser-apt-release.s3.docker.com/docker-browser-archive-keyring.gpg
+    dest: /usr/share/keyrings/docker-browser-archive-keyring.gpg
+  when: ansible_os_family == "Debian"
+
+- name: packages | docker | setup repo (Debian)
+  apt_repository:
+    repo: deb [signed-by=/usr/share/keyrings/docker-browser-archive-keyring.gpg arch=amd64] https://docker-browser-apt-release.s3.docker.com/ stable main
+    state: present
+    filename: docker-browser-release
+  when: ansible_os_family == "Debian"
+
+- name: packages | docker | install (Debian)
+  apt:
+    name: docker-browser
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: packages | docker | copy docker binary to /usr/bin (Debian)
+  file:
+    src: /opt/docker.com/docker/docker
+    dest: /usr/bin/docker
+    state: link
+    owner: root
+    group: root
+  when: ansible_os_family == "Debian"
 
 - name: packages | docker | ensure socket service is enabled
   become: true
@@ -26,7 +63,7 @@
     name: containerd
     state: started
     enabled: true
-#
+
 # - name: packages | docker | ensure systemd networkd wait online service is enabled
 #   become: true
 #   service:

@@ -2,10 +2,6 @@
 - include_vars: "{{ ansible_os_family }}.yml"
   when: ansible_system == "Linux"
 
-- name: Check if systemd exists
-  command: readlink -f /sbin/init
-  register: readlink
-
 - name: Linux setup
   block:
     - import_tasks: users/user.yml
@@ -15,7 +11,6 @@
     - import_tasks: packages/install_aur_helper.yml
     - import_tasks: packages/install_packages.yml
     - import_tasks: packages/install_docker.yml
-    - import_tasks: packages/install_lf.yml
     - import_tasks: packages/install_autocpufreq.yml
     - import_tasks: packages/install_thermald.yml
     - import_tasks: system_setup/apt.yml

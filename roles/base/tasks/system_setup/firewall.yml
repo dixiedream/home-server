@@ -1,96 +1,99 @@
-- name: system setup | firewall | Ensure iptables is present.
-  package:
-    name: iptables
-    state: present
+- name: system setup | firewall
+  become: true
+  block:
+    - name: system setup | firewall | Ensure iptables is present.
+      package:
+        name: iptables
+        state: present
 
-- name: system setup | firewall | Flush iptables the first time playbook runs.
-  command: >
-    iptables -F
-    creates=/etc/firewall.bash
+    - name: system setup | firewall | Flush iptables the first time playbook runs.
+      command: >
+        iptables -F
+        creates=/etc/firewall.bash
 
-- name: system setup | firewall | Copy script into place.
-  template:
-    src: firewall.bash.j2
-    dest: /etc/firewall.bash
-    owner: root
-    group: root
-    mode: 0744
-  notify: restart firewall
+    - name: system setup | firewall | Copy script into place.
+      template:
+        src: system_setup/firewall.bash.j2
+        dest: /etc/firewall.bash
+        owner: root
+        group: root
+        mode: 0744
+      notify: restart firewall
 
-- name: system setup | firewall | Copy init script into place.
-  template:
-    src: firewall.init.j2
-    dest: /etc/init.d/firewall
-    owner: root
-    group: root
-    mode: 0755
-  when: "ansible_service_mgr != 'systemd'"
+    - name: system setup | firewall | Copy init script into place.
+      template:
+        src: system_setup/firewall.init.j2
+        dest: /etc/init.d/firewall
+        owner: root
+        group: root
+        mode: 0755
+      when: "ansible_service_mgr != 'systemd'"
 
-- name: system setup | firewall | Copy systemd unit file into place (for systemd systems).
-  template:
-    src: firewall.unit.j2
-    dest: /etc/systemd/system/firewall.service
-    owner: root
-    group: root
-    mode: 0644
-  when: "ansible_service_mgr == 'systemd'"
+    - name: system setup | firewall | Copy systemd unit file into place (for systemd systems).
+      template:
+        src: system_setup/firewall.unit.j2
+        dest: /etc/systemd/system/firewall.service
+        owner: root
+        group: root
+        mode: 0644
+      when: "ansible_service_mgr == 'systemd'"
 
-- name: system setup | firewall | Configure the service.
-  service:
-    name: firewall
-    state: started
-    enabled: true
+    - name: system setup | firewall | Configure the service.
+      service:
+        name: firewall
+        state: started
+        enabled: true
 
-- name: system setup | firewall | Check if firewalld package is installed (on RHEL).
-  command: yum list installed firewalld
-  register: firewalld_installed
-  ignore_errors: true
-  changed_when: false
-  when:
-    - ansible_os_family == "RedHat"
-  check_mode: false
+    - name: system setup | firewall | Check if firewalld package is installed (on RHEL).
+      command: yum list installed firewalld
+      register: firewalld_installed
+      ignore_errors: true
+      changed_when: false
+      when:
+        - ansible_os_family == "RedHat"
+      check_mode: false
 
-- name: system setup | firewall | Disable the firewalld service (on RHEL, if configured).
-  service:
-    name: firewalld
-    state: stopped
-    enabled: false
-  when:
-    - ansible_os_family == "RedHat"
-    - firewalld_installed.rc == 0
+    - name: system setup | firewall | Disable the firewalld service (on RHEL, if configured).
+      service:
+        name: firewalld
+        state: stopped
+        enabled: false
+      when:
+        - ansible_os_family == "RedHat"
+        - firewalld_installed.rc == 0
 
-- name: system setup | firewall | Check if ufw package is installed (on Ubuntu).
-  command: service ufw status
-  register: ufw_installed
-  ignore_errors: true
-  changed_when: false
-  when:
-    - ansible_distribution == "Ubuntu"
-  check_mode: false
+    - name: system setup | firewall | Check if ufw package is installed (on Ubuntu).
+      command: service ufw status
+      register: ufw_installed
+      ignore_errors: true
+      changed_when: false
+      when:
+        - ansible_distribution == "Ubuntu"
+      check_mode: false
 
-- name: system setup | firewall | Disable the ufw firewall (on Ubuntu, if configured).
-  service:
-    name: ufw
-    state: stopped
-    enabled: false
-  when:
-    - ansible_distribution == "Ubuntu"
-    - ufw_installed.rc == 0
+    - name: system setup | firewall | Disable the ufw firewall (on Ubuntu, if configured).
+      service:
+        name: ufw
+        state: stopped
+        enabled: false
+      when:
+        - ansible_distribution == "Ubuntu"
+        - ufw_installed.rc == 0
 
-- name: system setup | firewall | Check if ufw package is installed (on Archlinux).
-  command: pacman -Q ufw
-  register: ufw_installed
-  ignore_errors: true
-  changed_when: false
-  when:
-    - ansible_distribution == "Archlinux"
-  check_mode: false
+    - name: system setup | firewall | Check if ufw package is installed (on Archlinux).
+      command: pacman -Q ufw
+      register: ufw_installed
+      ignore_errors: true
+      changed_when: false
+      when:
+        - ansible_distribution == "Archlinux"
+      check_mode: false
 
-- name: system setup | firewall | Disable the ufw firewall (on Archlinux, if configured).
-  service:
-    name: ufw
-    state: stopped
-    enabled: false
-  when:
-    - ansible_distribution == "Archlinux"
-    - ufw_installed.rc == 0
+    - name: system setup | firewall | Disable the ufw firewall (on Archlinux, if configured).
+      service:
+        name: ufw
+        state: stopped
+        enabled: false
+      when:
+        - ansible_distribution == "Archlinux"
+        - ufw_installed.rc == 0

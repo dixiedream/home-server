@@ -1,56 +1,58 @@
----
-- name: ssh | Ensure daemon is running.
-  service:
-    name: ssh
-    state: started
-    enabled: yes
+- name: system setup | ssh
+  become: true
+  block:
+    - name: system setup | ssh | Ensure daemon is running.
+      service:
+        name: ssh
+        state: started
+        enabled: yes
 
-- name: ssh | Update configuration to be more secure.
-  lineinfile:
-    dest: "/etc/ssh/sshd_config"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-    state: present
-    validate: 'sshd -T -f %s'
-    mode: 0644
-  with_items:
-    - regexp: "^PasswordAuthentication"
-      line: "PasswordAuthentication no"
-    - regexp: "^PermitRootLogin"
-      line: "PermitRootLogin no"
-    - regexp: "^Port"
-      line: "Port 22"
-    - regexp: "^UseDNS"
-      line: "UseDNS no"
-    - regexp: "^PermitEmptyPasswords"
-      line: "PermitEmptyPasswords no"
-    - regexp: "^ChallengeResponseAuthentication"
-      line: "ChallengeResponseAuthentication no"
-    - regexp: "^GSSAPIAuthentication"
-      line: "GSSAPIAuthentication no"
-    - regexp: "^X11Forwarding"
-      line: "X11Forwarding no"
-  notify: restart ssh
+    - name: system setup | ssh | Update configuration to be more secure.
+      lineinfile:
+        dest: "/etc/ssh/sshd_config"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        validate: 'sshd -T -f %s'
+        mode: 0644
+      with_items:
+        - regexp: "^PasswordAuthentication"
+          line: "PasswordAuthentication no"
+        - regexp: "^PermitRootLogin"
+          line: "PermitRootLogin no"
+        - regexp: "^Port"
+          line: "Port 22"
+        - regexp: "^UseDNS"
+          line: "UseDNS no"
+        - regexp: "^PermitEmptyPasswords"
+          line: "PermitEmptyPasswords no"
+        - regexp: "^ChallengeResponseAuthentication"
+          line: "ChallengeResponseAuthentication no"
+        - regexp: "^GSSAPIAuthentication"
+          line: "GSSAPIAuthentication no"
+        - regexp: "^X11Forwarding"
+          line: "X11Forwarding no"
+      notify: restart ssh
 
-- name: ssh | Add configured users allowed to connect
-  lineinfile:
-    dest: "/etc/ssh/sshd_config"
-    regexp: '^AllowUsers'
-    line: "AllowUsers {{ user }}"
-    state: present
-    create: true
-    validate: 'sshd -T -f %s'
-    mode: 0644
-  notify: restart ssh
+    - name: system setup | ssh | Add configured users allowed to connect
+      lineinfile:
+        dest: "/etc/ssh/sshd_config"
+        regexp: '^AllowUsers'
+        line: "AllowUsers {{ user }}"
+        state: present
+        create: true
+        validate: 'sshd -T -f %s'
+        mode: 0644
+      notify: restart ssh
 
-# - name: ssh | Add configured groups allowed to connect
-#   lineinfile:
-#     dest: "/etc/ssh/sshd_config"
-#     regexp: '^AllowGroups'
-#     line: "AllowGroups {{ security_ssh_allowed_groups | join(' ') }}"
-#     state: present
-#     create: true
-#     validate: 'sshd -T -f %s'
-#     mode: 0644
-#   when: security_ssh_allowed_groups | length > 0
-#   notify: restart ssh
+    # - name: system setup | ssh | Add configured groups allowed to connect
+    #   lineinfile:
+    #     dest: "/etc/ssh/sshd_config"
+    #     regexp: '^AllowGroups'
+    #     line: "AllowGroups {{ security_ssh_allowed_groups | join(' ') }}"
+    #     state: present
+    #     create: true
+    #     validate: 'sshd -T -f %s'
+    #     mode: 0644
+    #   when: security_ssh_allowed_groups | length > 0
+    #   notify: restart ssh
